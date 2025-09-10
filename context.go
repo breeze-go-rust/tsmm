@@ -1,4 +1,4 @@
-package tsmm
+package go_tsmm
 
 import "github.com/breeze-go-rust/tsmm/internal/common"
 

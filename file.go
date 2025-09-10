@@ -1,1 +1,1 @@
-package tsmm
+package go_tsmm

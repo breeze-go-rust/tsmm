@@ -1,14 +1,18 @@
-package tsmm
+package go_tsmm
 
 import (
 	"bytes"
 	"fmt"
+	"github.com/breeze-go-rust/tsmm/cache"
 	"github.com/breeze-go-rust/tsmm/internal/common"
+	"github.com/breeze-go-rust/tsmm/internal/compress"
 	"github.com/breeze-go-rust/tsmm/internal/freelist"
 	"github.com/breeze-go-rust/tsmm/util"
+	"github.com/breeze-go-rust/tsmm/vexodb"
 	"github.com/panjf2000/ants/v2"
 	"path/filepath"
 	"sync"
+	"unsafe"
 )
 
 const (
@@ -22,12 +26,14 @@ const DefaultFillPercent = 0.5
 
 type BTree struct {
 	header         *common.InBTree
+	versionNum     uint32
 	isSubBTree     bool
 	isReadOnly     bool
 	parentBTree    *BTree
 	rootPage       *common.Page // root's page
 	bTrees         map[string]*BTree
 	dirtyBTrees    map[string]*BTree
+	dirtyNodeCache cache.Cache
 	rootNode       *node
 	batch          *SkipList
 	freelist       freelist.Interface
@@ -39,6 +45,13 @@ type BTree struct {
 	leafNodePool   *ants.MultiPoolWithFunc
 	branchNodePool *ants.MultiPoolWithFunc
 	subBTreePool   *ants.MultiPoolWithFunc
+	pSize          uint32
+	compressor     compress.Compressor
+	compressEnable bool
+
+	dataBufferPool *sync.Pool
+	hashBufferPool *sync.Pool
+	vlog           *vexodb.ValueLog
 }
 
 const (
@@ -47,6 +60,7 @@ const (
 
 func NewBTree(isReadOnly bool, isSubBTree bool, noSync bool,
 	baseBTreePath string,
+	compressType string,
 	activateMetaVersion int,
 	seq uint64, name string, pgId common.Pgid, overflow uint32) (*BTree, error) {
 
@@ -59,6 +73,8 @@ func NewBTree(isReadOnly bool, isSubBTree bool, noSync bool,
 		isSubBTree: isSubBTree,
 		isReadOnly: isReadOnly,
 		header:     common.NewInBTree(pgId, overflow, name, seq),
+		versionNum: uint32(activateMetaVersion),
+		compressor: compress.NewCompressor(compressType),
 	}
 	if !isSubBTree {
 		bTree.bTrees = make(map[string]*BTree)
@@ -140,7 +156,7 @@ func (b *BTree) Update() error {
 	return b.update(&wg, b.batch.Dump())
 }
 
-func (b *BTree) update(wg *sync.WaitGroup, kvs common.KVS) error {
+func (b *BTree) update(wg *sync.WaitGroup, kvs common.Inodes) error {
 	if len(kvs) == 0 {
 		wg.Done()
 		return nil
@@ -164,6 +180,10 @@ func (b *BTree) parent() *BTree {
 	return b.parentBTree
 }
 
+func (b *BTree) pageSize() uint32 {
+	return b.pSize
+}
+
 func (b *BTree) page(id common.Pgid, overflow uint32) (*common.Page, error) {
 	page, err := b.pageMgr.ReadAt(id, overflow)
 	if err != nil {
@@ -180,10 +200,28 @@ func (b *BTree) pageNode(id common.Pgid, overflow uint32) (*node, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	n := &node{bTree: b}
 	n.read(p)
 	return n, nil
+}
+
+func (b *BTree) allocate(count int) *common.Page {
+	buf := make([]byte, count*common.DefaultPageSize)
+	page := (*common.Page)(unsafe.Pointer(&buf[0]))
+	defer func() {
+		// TODO 缓存当前 page
+	}()
+	page.SetOverflow(uint32(count) - 1)
+	pid := b.freelist.Allocate(common.TxID(b.header.InSequence()), count)
+	if pid != 0 {
+		page.SetId(pid)
+		return page
+	}
+	return page
+}
+
+func (b *BTree) EnableCompress() bool {
+	return b.compressEnable
 }
 
 // 以下操作，仅 主树 可以操作

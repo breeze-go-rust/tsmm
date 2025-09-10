@@ -1,4 +1,4 @@
-package tsmm
+package go_tsmm
 
 import (
 	"fmt"

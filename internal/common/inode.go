@@ -55,8 +55,8 @@ func (in *Inode) SetOverflow(overflow uint32) {
 	in.overflow = overflow
 }
 
-func (in *Inode) Hash() [20]byte {
-	return in.hash
+func (in *Inode) Hash() []byte {
+	return in.hash[:]
 }
 
 func (in *Inode) SetHash(hash []byte) {

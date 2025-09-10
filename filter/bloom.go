@@ -13,7 +13,7 @@ type bloomFilter int
 // Name The bloom filter serializes its parameters and is backward compatible
 // with respect to them. Therefor, its parameters are not added to its names
 func (bloomFilter) Name() string {
-	return "tsmm.BuiltinBloomFilter"
+	return "go-tsmm.BuiltinBloomFilter"
 }
 
 func (f bloomFilter) Contains(filter, key []byte) bool {

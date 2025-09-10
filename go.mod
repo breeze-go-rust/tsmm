@@ -1,8 +1,12 @@
 module github.com/breeze-go-rust/tsmm
 
-go 1.21
+go 1.22
+
+toolchain go1.24.5
 
 require (
-	github.com/panjf2000/ants/v2 v2.11.3 // indirect
-	golang.org/x/sync v0.11.0 // indirect
+	github.com/klauspost/compress v1.18.0
+	github.com/panjf2000/ants/v2 v2.11.3
 )
+
+require golang.org/x/sync v0.11.0 // indirect

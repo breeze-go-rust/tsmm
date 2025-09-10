@@ -1,7 +1,8 @@
-package tsmm
+package go_tsmm
 
 import (
 	"bytes"
+	"github.com/breeze-go-rust/tsmm/internal/common"
 	"math/rand"
 	"time"
 )
@@ -133,17 +134,17 @@ func (s *SkipList) Size() int {
 	return s.length
 }
 
-func (s *SkipList) Dump() KVS {
-	kvs := make(KVS, 0, s.length)
+func (s *SkipList) Dump() common.Inodes {
+	kvs := make(common.Inodes, 0, s.length)
 	current := s.head.forward[0] // 从最底层第一个节点开始
 
 	// 遍历最底层链表
 	for current != nil {
 		// 复制键值避免外部修改影响内部数据
-		kvs = append(kvs, &KV{
-			Key:   append([]byte(nil), current.key...),
-			Value: append([]byte(nil), current.value...),
-		})
+		inode := common.Inode{}
+		inode.SetKey(current.key)
+		inode.SetValue(current.value)
+		kvs = append(kvs, &inode)
 		current = current.forward[0]
 	}
 	return kvs

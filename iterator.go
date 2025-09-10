@@ -1,4 +1,4 @@
-package tsmm
+package go_tsmm
 
 type Iterator interface {
 	Key() []byte

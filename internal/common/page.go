@@ -28,6 +28,11 @@ const (
 	FreelistPageFlag = 0x10
 )
 
+const (
+	NormalTreeFlag = 0x01
+	SubTreeFlag    = 0x02
+)
+
 type Pgid uint64
 
 type Page struct {
@@ -182,6 +187,14 @@ func (p *Page) SetId(target Pgid) {
 	p.id = target
 }
 
+func (p *Page) Size() uint32 {
+	return p.size
+}
+
+func (p *Page) SetSize(target uint32) {
+	p.size = target
+}
+
 func (p *Page) Flags() uint16 {
 	return p.flags
 }
@@ -225,9 +238,10 @@ func (s Pages) Less(i, j int) bool { return s[i].id < s[j].id }
 
 // branchPageElement represents a node on a branch page.
 type branchPageElement struct {
-	pos   uint32
-	ksize uint32
-	pgid  Pgid
+	pos      uint32
+	ksize    uint32
+	pgid     Pgid
+	overflow uint32
 }
 
 func (n *branchPageElement) Pos() uint32 {
@@ -265,14 +279,16 @@ type leafPageElement struct {
 	pos   uint32
 	ksize uint32
 	vsize uint32
+	hsize uint32
 }
 
-func NewLeafPageElement(flags, pos, ksize, vsize uint32) *leafPageElement {
+func NewLeafPageElement(flags, pos, ksize, vsize, hsize uint32) *leafPageElement {
 	return &leafPageElement{
 		flags: flags,
 		pos:   pos,
 		ksize: ksize,
 		vsize: vsize,
+		hsize: 20,
 	}
 }
 
@@ -308,6 +324,14 @@ func (n *leafPageElement) SetVsize(v uint32) {
 	n.vsize = v
 }
 
+func (n *leafPageElement) Hsize() uint32 {
+	return n.hsize
+}
+
+func (n *leafPageElement) SetHsize(h uint32) {
+	n.hsize = h
+}
+
 // Key returns a byte slice of the node key.
 func (n *leafPageElement) Key() []byte {
 	i := int(n.pos)
@@ -322,17 +346,25 @@ func (n *leafPageElement) Value() []byte {
 	return UnsafeByteSlice(unsafe.Pointer(n), 0, i, j)
 }
 
-func (n *leafPageElement) IsBucketEntry() bool {
-	return n.flags&uint32(BucketLeafFlag) != 0
+// Hash returns a byte slice of the node value.
+func (n *leafPageElement) Hash() []byte {
+	i := int(n.pos) + int(n.ksize) + int(n.vsize)
+	j := i + int(n.hsize)
+	return UnsafeByteSlice(unsafe.Pointer(n), 0, i, j)
 }
 
-func (n *leafPageElement) Bucket() *InBTree {
-	if n.IsBucketEntry() {
-		return LoadBucket(n.Value())
-	} else {
-		return nil
-	}
-}
+// func (n *leafPageElement) IsBucketEntry() bool {
+// 	return n.flags&uint32(BucketLeafFlag) != 0
+// }
+
+//
+// func (n *leafPageElement) Bucket() *InBTree {
+// 	if n.IsBucketEntry() {
+// 		return LoadBucket(n.Value())
+// 	} else {
+// 		return nil
+// 	}
+// }
 
 // PageInfo represents human readable information about a page.
 type PageInfo struct {
