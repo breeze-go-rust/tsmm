@@ -3,8 +3,8 @@ package go_tsmm
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/breeze-go-rust/tsmm/internal/common"
-	"github.com/breeze-go-rust/tsmm/util/hasher"
+	"github.com/breeze-go-rust/go-tsmm/internal/common"
+	"github.com/breeze-go-rust/go-tsmm/util/hasher"
 	"sync"
 )
 

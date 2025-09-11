@@ -1,7 +1,7 @@
 package filter
 
 import (
-	"github.com/breeze-go-rust/tsmm/util"
+	"github.com/breeze-go-rust/go-tsmm/util"
 )
 
 func bloomHash(key []byte) uint32 {

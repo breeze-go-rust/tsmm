@@ -1,6 +1,6 @@
 package freelist
 
-import "github.com/breeze-go-rust/tsmm/internal/common"
+import "github.com/breeze-go-rust/go-tsmm/internal/common"
 
 type ReadWriter interface {
 	// Read calls Init with the page ids stored in the given page.

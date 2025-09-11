@@ -2,8 +2,8 @@ package go_tsmm
 
 import (
 	"fmt"
-	"github.com/breeze-go-rust/tsmm/file"
-	"github.com/breeze-go-rust/tsmm/internal/common"
+	"github.com/breeze-go-rust/go-tsmm/file"
+	"github.com/breeze-go-rust/go-tsmm/internal/common"
 	"path/filepath"
 	"unsafe"
 )

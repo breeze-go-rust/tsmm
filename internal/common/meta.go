@@ -2,12 +2,13 @@ package common
 
 import (
 	"fmt"
-	"github.com/breeze-go-rust/tsmm/errors"
+	"github.com/breeze-go-rust/go-tsmm/errors"
 	"hash/fnv"
 	"io"
 	"unsafe"
 )
 
+// Meta 版本信息
 type Meta struct {
 	magic    uint32
 	version  uint32

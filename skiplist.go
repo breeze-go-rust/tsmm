@@ -2,7 +2,7 @@ package go_tsmm
 
 import (
 	"bytes"
-	"github.com/breeze-go-rust/tsmm/internal/common"
+	"github.com/breeze-go-rust/go-tsmm/internal/common"
 	"math/rand"
 	"time"
 )

@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/breeze-go-rust/tsmm/util"
+	"github.com/breeze-go-rust/go-tsmm/util"
 )
 
 // Cacher provides interface to implements a caching functionality.

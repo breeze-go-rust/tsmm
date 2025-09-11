@@ -2,7 +2,7 @@ package freelist
 
 import (
 	"fmt"
-	"github.com/breeze-go-rust/tsmm/internal/common"
+	"github.com/breeze-go-rust/go-tsmm/internal/common"
 	"reflect"
 	"sort"
 )
@@ -212,7 +212,7 @@ func (f *hashMap) mergeWithExistingSpan(pid common.Pgid) {
 	newSize := uint64(1)
 
 	if mergeWithPrev {
-		//merge with previous span
+		// merge with previous span
 		start := prev + 1 - common.Pgid(preSize)
 		f.delSpan(start, preSize)
 
